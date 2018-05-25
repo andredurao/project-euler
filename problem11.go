@@ -14,6 +14,7 @@ import (
 )
 
 const Limit = 20
+const WindowSize = 4
 
 type Cursor struct {
 	Row int
@@ -38,12 +39,10 @@ func readMatrix() [][]int {
 	return matrix
 }
 
-// TODO: CREATE Struct CURSOR
 func seekByDirection(cursor Cursor, matrix [][]int) int {
 	largest := 0
 	// up right down left
-	directions := [][]int{{-1, 0}, {0, 1}, {1, 0}, {0, -1}}
-	fmt.Println("seekByDirection")
+	directions := []Cursor{{-1, 0}, {0, 1}, {1, 0}, {0, -1}, {1, 1}, {-1, -1}}
 	for _, direction := range directions {
 		result := directionHandler(cursor, matrix, direction)
 		if result > largest {
@@ -53,24 +52,37 @@ func seekByDirection(cursor Cursor, matrix [][]int) int {
 	return largest
 }
 
-// TODO: CREATE Struct CURSOR
-func directionHandler(cursor Cursor, matrix [][]int, direction []int) int {
-	multiple := matrix[cursor.Row][cursor.Col]
+func directionHandler(cursor Cursor, matrix [][]int, direction Cursor) int {
+	multiple := 1
+	//fmt.Println("---")
+	//fmt.Println(multiple)
+	var ary [4]int
+	for index := 0; index < WindowSize; index++ {
+		//fmt.Println(matrix[cursorCopy.Row][cursorCopy.Col])
+		cursor.Row += direction.Row
+		cursor.Col += direction.Col
+		if cursor.Row >= Limit || cursor.Col >= Limit || cursor.Row < 0 || cursor.Col < 0 {
+			ary[index] = 0
+		} else {
+			ary[index] = matrix[cursor.Row][cursor.Col]
+		}
+		multiple *= ary[index]
+	}
+	fmt.Println(ary[0], "\t", ary[1], "\t", ary[1], "\t", ary[1], "\t", multiple)
 	return multiple
 }
 
 func seek(matrix [][]int) {
-	fmt.Println("seek")
 	largest := 0
 	for i := 0; i < Limit; i++ {
 		for j := 0; j < Limit; j++ {
-			// TODO: CREATE Struct CURSOR
 			result := seekByDirection(Cursor{j, i}, matrix)
 			if result > largest {
 				largest = result
 			}
 		}
 	}
+	fmt.Println(largest)
 }
 
 func main() {
