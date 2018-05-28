@@ -21,8 +21,42 @@ package main
 
 import (
 	"fmt"
+	"math"
 )
 
 func main() {
 	fmt.Println("Problem 12")
+	divisorsCount(7)
+	i := 1
+
+	for {
+		if divisorsCount(i) > 500 {
+			break
+		}
+		i++
+	}
+	fmt.Println((i * (i + 1)) / 2)
+}
+func appendIfUnique(slice []uint64, i uint64) []uint64 {
+	for _, el := range slice {
+		if el == i {
+			return slice
+		}
+	}
+	return append(slice, i)
+}
+func divisorsCount(n int) int {
+	var sum uint64 = uint64((n * (n + 1)) / 2)
+	max := uint64(math.Ceil(math.Sqrt(float64(sum))))
+	var i uint64 = 1
+	var divisors []uint64
+
+	for i < max {
+		if sum%i == 0 {
+			divisors = appendIfUnique(divisors, i)
+			divisors = appendIfUnique(divisors, sum/i)
+		}
+		i++
+	}
+	return len(divisors)
 }
