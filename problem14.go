@@ -41,7 +41,14 @@ func Chain(items []int) []int {
 
 func main() {
 	fmt.Println("Problem 14")
-	items := []int{13}
-	list := Chain(items)
-	fmt.Println(list)
+	chainSize := 0
+	item := 1
+	for i := 1; i < 1000000; i++ {
+		list := Chain([]int{i})
+		if len(list) > chainSize {
+			chainSize = len(list)
+			item = i
+		}
+	}
+	fmt.Println(item, " -> ", chainSize)
 }
