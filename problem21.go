@@ -14,43 +14,19 @@ package main
 import (
 	"fmt"
 	"math"
-	_ "os"
-	_ "strconv"
 )
 
-func contains(m map[int]struct{}, n int) bool {
-	_, isPresent := m[n]
-	return isPresent
-}
-
-func appendInMap(m map[int]struct{}, n int) {
-	if !contains(m, n) {
-		m[n] = struct{}{}
-	}
-}
-
-func keys(m map[int]struct{}) []int {
-	items := make([]int, len(m))
-	i := 0
-	for k, _ := range m {
-		items[i] = k
-		i++
-	}
-	return items
-}
-
 func divisors(n int) []int {
-	items := make(map[int]struct{})
-	items[1] = struct{}{}
+	items := []int{1}
 
-	limit := int(math.Sqrt(float64(n)) + 1)
+	limit := int(math.Sqrt(float64(n)))
 	for i := 2; i <= limit; i++ {
 		if n%i == 0 {
-			appendInMap(items, i)
-			appendInMap(items, n/i)
+			items = append(items, i)
+			items = append(items, n/i)
 		}
 	}
-	return keys(items)
+	return items
 }
 
 func sum(items []int) int {
@@ -61,22 +37,21 @@ func sum(items []int) int {
 	return total
 }
 
-func createSetOfSums() map[int][]int {
-	items := make(map[int][]int)
+func sumsMap() map[int]int {
+	items := make(map[int]int)
 	for i := 1; i < 10000; i++ {
-		sumOfDivisors := sum(divisors(i))
-		items[sumOfDivisors] = append(items[sumOfDivisors], i)
+		items[i] = sum(divisors(i))
 	}
 	return items
 }
 
 func main() {
 	fmt.Println("Problem 21")
-	items := createSetOfSums()
+	items := sumsMap()
 	total := 0
-	for _, item := range items {
-		if len(item) > 1 {
-			total += sum(item)
+	for k, v := range items {
+		if items[v] == k && k != v {
+			total += v
 		}
 	}
 	fmt.Println(total)
