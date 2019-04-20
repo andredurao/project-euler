@@ -19,42 +19,28 @@ package main
 import (
 	"fmt"
 	"math"
-	"os"
-	"strconv"
 )
 
 var abundantList []int
+var sumMap map[int]bool
 
 func main() {
 	fmt.Println("Problem 23")
-	value, _ := strconv.Atoi(os.Args[1])
-	fmt.Println(value)
 	abundantList = buildAbundantList()
+	fmt.Println(len(abundantList))
+	sumMap = buildSumOfAbundants()
 	checkSumOfAbundantsNumbers()
 }
 
 func checkSumOfAbundantsNumbers() {
-	var total uint64 = 0
+	var total uint64
 	for i := 0; i < 28123; i++ {
-		if !canBeWrittenAsSum(i) {
+		_, value := sumMap[i]
+		if !value {
 			total += uint64(i)
 		}
 	}
 	fmt.Println(total)
-}
-
-func canBeWrittenAsSum(value int) bool {
-	i, j := 0, 0
-	for abundantList[i] < value {
-		for abundantList[j] < value {
-			if abundantList[i]+abundantList[j] == value {
-				return true
-			}
-			j += 1
-		}
-		i += 1
-	}
-	return false
 }
 
 func divisors(n int) []int {
@@ -84,14 +70,27 @@ func abundant(value int) bool {
 
 func buildAbundantList() []int {
 	var list []int
-	//var items map[int]struct{}
-	for i := 1; i < 29000; i++ {
-		//for i := 1; i < 50; i++ {
+	for i := 1; i < 28123; i++ {
 		if abundant(i) {
 			list = append(list, i)
 		}
 	}
 	return list
+}
+
+func buildSumOfAbundants() map[int]bool {
+	sumMap := make(map[int]bool)
+	for i := 0; i < len(abundantList); i++ {
+		for j := i; j < len(abundantList); j++ {
+			sum := abundantList[i] + abundantList[j]
+			if sum <= 28123 {
+				sumMap[sum] = true
+			} else {
+				break
+			}
+		}
+	}
+	return sumMap
 }
 
 func contains(m map[int]struct{}, n int) bool {
