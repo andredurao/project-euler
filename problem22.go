@@ -11,10 +11,20 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
-	"os"
+	"io/ioutil"
 	"sort"
+	"strings"
 )
+
+func loadNames(filename string) []string {
+	fileContent, _ := ioutil.ReadFile(filename)
+	content := string(bytes.Replace(fileContent, []byte(`"`), []byte(``), -1))
+	list := strings.Split(content, ",")
+	sort.Sort(sort.StringSlice(list))
+	return list
+}
 
 func main() {
 	var total uint64 = 0
@@ -24,8 +34,6 @@ func main() {
 	for i, v := range namesList {
 		index := i + 1
 		total += uint64(index * charScore(v))
-		//fmt.Println(index, v, charScore(v))
-		fmt.Println(v)
 	}
 	fmt.Println(total)
 }
@@ -36,33 +44,4 @@ func charScore(value string) int {
 		score += int(v - 'A' + 1)
 	}
 	return score
-}
-
-func loadNames(filename string) []string {
-	var list []string
-	var nameBuffer string
-	buffer := make([]byte, 1)
-
-	file, err := os.Open(filename)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	for {
-		n, _ := file.Read(buffer)
-		if n == 0 {
-			break
-		}
-		char := string(buffer)
-		if char == "," {
-			list = append(list, nameBuffer)
-			nameBuffer = ""
-		} else if char != "\"" {
-			nameBuffer += char
-		}
-	}
-
-	// sort.StringSlice is an abstraction to []string
-	sort.Sort(sort.StringSlice(list))
-	return list
 }
