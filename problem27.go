@@ -24,9 +24,15 @@ import (
 	"math"
 )
 
-func isPrime(n int) bool {
-	max := int(math.Ceil(math.Sqrt(float64(n))))
-	var i int
+// FunctionMap refers to the coefficents of a function
+type FunctionMap struct {
+	A int
+	B int
+}
+
+func isPrime(n int64) bool {
+	max := int64(math.Ceil(math.Sqrt(float64(n))))
+	var i int64
 	for i = 2; i <= max; i++ {
 		if n%i == 0 {
 			return false
@@ -35,20 +41,64 @@ func isPrime(n int) bool {
 	return true
 }
 
+// Populate an array of int with prime values ≤ max
 func populatePrimesList(list *[]int, max int) {
 	*list = append(*list, 2)
 	for i := 3; i <= max; i += 2 {
-		if isPrime(i) {
+		if isPrime(int64(i)) {
 			*list = append(*list, i)
 		}
 	}
 }
 
+func consecutivePrimes(a int, b int, primesMap map[int64]struct{}) (primes []int64) {
+	var i, value int64
+	for {
+		value = i*i + int64(a)*i + int64(b)
+		value = int64(math.Abs(float64(value)))
+		_, primeFound := primesMap[value]
+		if primeFound {
+			primes = append(primes, value)
+		} else if isPrime(value) {
+			primesMap[value] = struct{}{}
+			primes = append(primes, value)
+		} else {
+			break
+		}
+		i++
+	}
+	return
+}
+
 func main() {
-	// b must be prime, because the consecutive values start with n=0
+	// b must be prime, because n starts with 0
 	primesList := make([]int, 0)
+	// map of primes to cache primes
+	primesMap := make(map[int64]struct{})
+	// map of the primes found for the coefficients A and B
+	consecutivePrimesMap := make(map[FunctionMap][]int64)
+	// the coefficients with most consecutive primes
+	var maxFunctionMap FunctionMap
 
 	fmt.Println("Problem 27")
+
 	populatePrimesList(&primesList, 1000)
-	fmt.Println(primesList)
+
+	for a := -999; a < 1000; a++ {
+		for _, b := range primesList {
+			coefficients := FunctionMap{a, b}
+			consecutivePrimesMap[coefficients] = consecutivePrimes(a, b, primesMap)
+		}
+	}
+
+	maxLen := 0
+	for k, v := range consecutivePrimesMap {
+		if len(v) > maxLen {
+			maxLen = len(v)
+			maxFunctionMap = k
+		}
+	}
+	fmt.Println(maxFunctionMap)
+	fmt.Println(len(consecutivePrimesMap[maxFunctionMap]))
+	fmt.Println(maxFunctionMap.A * maxFunctionMap.B)
 }
