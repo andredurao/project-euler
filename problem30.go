@@ -14,36 +14,44 @@ package main
 
 import (
 	"fmt"
-	"math/big"
+	"math"
 )
 
 var p = fmt.Println
 
-func splitDigits(n uint64) (digits []int) {
+func digits(n int) (digits []int) {
 	for n > 0 {
-		digit := int(n % 10)
+		digit := n % 10
 		digits = append([]int{digit}, digits...)
 		n /= 10
 	}
 	return
 }
 
-func sumOfDigits(digits []int) (sum *big.Int) {
-	for item := range digits {
-		exp := new(big.Int)
-		value := new(big.Int)
-		value.SetInt64(int64(item))
-		five := new(big.Int)
-		five.SetInt64(int64(5))
-		exp = exp.Exp(value, five, nil)
-		sum.Add(sum, five)
+func validate(n int, power int) bool {
+	sum := 0
+
+	for _, i := range digits(n) {
+		sum += int(math.Pow(float64(i), float64(power)))
+		if sum > n {
+			return false
+		}
 	}
-	return
+	return sum == n
+}
+
+func limit(power int) int {
+	maxDigitValue := int(math.Pow(9.0, float64(power)))
+	return len(digits(maxDigitValue)) * maxDigitValue
 }
 
 func main() {
 	p("Problem 30")
-	digits := splitDigits(1234)
-	p(digits)
-	p(sumOfDigits(digits))
+	total := 0
+	for i := 2; i <= limit(5); i++ {
+		if validate(i, 5) {
+			total += i
+		}
+	}
+	p(total)
 }
