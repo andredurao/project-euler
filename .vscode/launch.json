@@ -1,0 +1,15 @@
+{
+    // src https://github.com/Microsoft/vscode-go/wiki/Debugging-Go-code-using-VS-Code#sample-configuration-to-debug-the-current-file
+
+"version": "0.2.0",
+"configurations": [
+    {
+        "name": "Launch file",
+        "type": "go",
+        "request": "launch",
+        "mode": "auto",
+        "program": "${file}",
+        "internalConsoleOptions": "openOnSessionStart",
+    }
+]
+}
