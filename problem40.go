@@ -19,6 +19,8 @@ import (
 	"strconv"
 )
 
+var p = fmt.Println
+
 type Range struct {
 	Min int
 	Max int
@@ -28,55 +30,60 @@ type Range struct {
 // rangeInClass(3) => 100:999
 // rangeInClass(4) => 1000:9999
 func rangeInClass(class int) (classRange Range) {
+	if class == 0 {
+		return Range{0, 0}
+	}
 	classRange.Min = int(math.Pow(10, float64(class-1)))
 	classRange.Max = int(math.Pow(10, float64(class))) - 1
 	return
 }
 
-func digitsQty(number int) int {
-	// logResult := math.Log10(float64(number))
-	// return int(math.Floor(logResult)) + 1
-	return len(strconv.Itoa(number))
+func classShift(class int) int {
+	acc := 0
+	for i := 0; i < class; i++ {
+		currentPage := rangeInClass(i)
+		delta := currentPage.Max - currentPage.Min + 1
+		acc += (delta * i)
+	}
+	return acc
 }
 
-func shiftOfNumber(number int) (class int) {
-	class, shift := 1, 0
-	status := true
-	for status {
-		currentRange := rangeInClass(class)
-		nextShift := shift + ((currentRange.Max - currentRange.Min + 1) * class)
-		fmt.Println("nextShift", nextShift)
-		if nextShift > number {
-			status = false
-		} else {
-			shift = nextShift
-			class++
-		}
-	}
-	shiftStarter := number - shift + 1
-	window := shiftStarter / class
-	slide := shiftStarter % class
-	l := rangeInClass(class-1).Max + window
-	strl := string(strconv.Itoa(l)[slide])
+func rangeOfDigitsInClass(class int) Range {
+	return Range{Min: (classShift(class) + 1), Max: classShift(class + 1)}
+}
 
-	fmt.Println("class", class)
-	fmt.Println("shift", shift)
-	fmt.Println("window", window)
-	fmt.Println("slide", slide)
-	fmt.Println("l", l)
-	fmt.Println("strl", strl)
-	return 0
+func rangeOfNumber(n int) (Range, int) {
+	class := 1
+	currentRange := rangeOfDigitsInClass(class)
+	for !(n >= currentRange.Min && n <= currentRange.Max) {
+		class++
+		currentRange = rangeOfDigitsInClass(class)
+	}
+	return currentRange, class
+}
+
+func valueOfNumber(n int) (value int) {
+	page, class := rangeOfNumber(n)
+	// p(page, class)
+	slot := (n - page.Min) / class
+	// p("slot", slot)
+	classNumbers := rangeInClass(class)
+	// p("classNumbers", classNumbers)
+	number := classNumbers.Min + slot
+	// p("number", number)
+	digitIndex := (n - page.Min) % class
+	// p("digitIndex", digitIndex)
+	strValue := strconv.Itoa(number)
+	value, _ = strconv.Atoi(string(strValue[digitIndex]))
+	return
 }
 
 func main() {
-	fmt.Println("Problem 40")
-	// fmt.Println(rangeInClass(3))
-	// fmt.Println(digitsQty(10))
-	// fmt.Println(classOf(1))
-	// fmt.Println(classOf(10))
-	class := shiftOfNumber(100)
-	fmt.Println(class)
-	// fmt.Println(rangeInClass(3))
-	// fmt.Println(rangeInClass(class))
-	// fmt.Println(valueInPos(1))
+	p("Problem 40")
+	values := [...]int{1, 10, 100, 1000, 10000, 100000, 1000000}
+	total := 1
+	for _, value := range values {
+		total *= valueOfNumber(value)
+	}
+	p(total)
 }
