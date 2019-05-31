@@ -12,7 +12,6 @@ package main
 import (
 	"fmt"
 	"math"
-	"sort"
 	"strconv"
 )
 
@@ -35,28 +34,7 @@ func isPrime(n int) bool {
 	return true
 }
 
-func nextPrime(n int) (next int) {
-	next = n + 2
-	for !isPrime(next) {
-		next += 2
-	}
-	return
-}
-
-// pre build a map of primes with 4 digits
-func buildPrimesMap(primesMap map[int]struct{}) {
-	prime := 999
-	for {
-		prime = nextPrime(prime)
-		if prime < 10000 {
-			primesMap[prime] = struct{}{}
-		} else {
-			break
-		}
-	}
-}
-
-func primePermutations(n int) (permutations []int) {
+func primePermutationsMap(n int) map[int]struct{} {
 	digits := []rune(strconv.Itoa(n))
 	numberPermutations := make([]string, 0)
 	generatePermutations(digits, len(digits), &numberPermutations)
@@ -67,11 +45,7 @@ func primePermutations(n int) (permutations []int) {
 			permutationsMap[number] = struct{}{}
 		}
 	}
-	for number := range permutationsMap {
-		permutations = append(permutations, number)
-	}
-
-	return
+	return permutationsMap
 }
 
 func generatePermutations(array []rune, n int, permutations *[]string) {
@@ -89,27 +63,16 @@ func generatePermutations(array []rune, n int, permutations *[]string) {
 	}
 }
 
-func filterPrimes(primesMap map[int]struct{}) map[int][]int {
-	result := make(map[int][]int)
-	for prime := range primesMap {
-		permutations := primePermutations(prime)
-		sort.Sort(sort.IntSlice(permutations))
-
-		if len(permutations) <= 2 {
-			delete(primesMap, prime)
-		} else {
-			result[prime] = append(result[prime], permutations...)
-		}
-	}
-	return result
-}
-
 func main() {
 	p("Problem 49")
-	primesMap := make(map[int]struct{})
-	buildPrimesMap(primesMap)
-	result := filterPrimes(primesMap)
-	p(result)
-	// p(primesMap)
-	// p(primePermutations(1431))
+	for i := 1001; i < 10000; i += 2 {
+		if isPrime(i) {
+			permutations := primePermutationsMap(i)
+			_, foundJ := permutations[i+3330]
+			_, foundK := permutations[i+6660]
+			if foundJ && foundK {
+				p(i, i+3330, i+6660)
+			}
+		}
+	}
 }
