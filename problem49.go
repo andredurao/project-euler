@@ -12,6 +12,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"sort"
 	"strconv"
 )
 
@@ -59,12 +60,15 @@ func primePermutations(n int) (permutations []int) {
 	digits := []rune(strconv.Itoa(n))
 	numberPermutations := make([]string, 0)
 	generatePermutations(digits, len(digits), &numberPermutations)
+	permutationsMap := make(map[int]struct{})
 	for _, value := range numberPermutations {
-		// p(number)
 		number, _ := strconv.Atoi(value)
-		if isPrime(number) {
-			permutations = append(permutations, number)
+		if value[0] != '0' && isPrime(number) {
+			permutationsMap[number] = struct{}{}
 		}
+	}
+	for number := range permutationsMap {
+		permutations = append(permutations, number)
 	}
 
 	return
@@ -85,10 +89,27 @@ func generatePermutations(array []rune, n int, permutations *[]string) {
 	}
 }
 
+func filterPrimes(primesMap map[int]struct{}) map[int][]int {
+	result := make(map[int][]int)
+	for prime := range primesMap {
+		permutations := primePermutations(prime)
+		sort.Sort(sort.IntSlice(permutations))
+
+		if len(permutations) <= 2 {
+			delete(primesMap, prime)
+		} else {
+			result[prime] = append(result[prime], permutations...)
+		}
+	}
+	return result
+}
+
 func main() {
 	p("Problem 49")
 	primesMap := make(map[int]struct{})
 	buildPrimesMap(primesMap)
+	result := filterPrimes(primesMap)
+	p(result)
 	// p(primesMap)
-	p(primePermutations(1487))
+	// p(primePermutations(1431))
 }
