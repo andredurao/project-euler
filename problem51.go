@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 )
 
 var p = fmt.Println
@@ -64,12 +65,12 @@ func uniqueDigits(number int) (int, int) {
 	return len(strNumber), len(result)
 }
 
-func filteredPrimes(primes map[int]struct{}, qtyOfRepeatedDigits int) map[int]struct{} {
-	result := make(map[int]struct{})
+func filteredPrimes(primes map[int]struct{}, qtyOfRepeatedDigits int) map[int]bool {
+	result := make(map[int]bool)
 	for prime := range primes {
 		digits, uniqueCount := uniqueDigits(prime)
 		if digits-uniqueCount >= qtyOfRepeatedDigits {
-			result[prime] = struct{}{}
+			result[prime] = false
 		}
 	}
 	return result
@@ -90,24 +91,65 @@ func generatePermutations(array []rune, n int, permutations *[]string) {
 	}
 }
 
-func familyOfNumbers(prime int, replacementString string) (family []int) {
-	return
+func numberDigitCounters(number int) map[int]int {
+	digits := make(map[int]int)
+	numberStr := strconv.Itoa(number)
+	for _, d := range numberStr {
+		digit := int(d - '0')
+		_, found := digits[digit]
+		if found {
+			digits[digit]++
+		} else {
+			digits[digit] = 1
+		}
+	}
+	return digits
 }
 
-func seekNumber(familySize int, primes map[int]struct{}) {
-	// base case 3rd and 4rd digits
+func numberFamilies(prime int) map[int][]int {
+	families := make(map[int][]int)
+	strNumber := strconv.Itoa(prime)
+	for digit, count := range numberDigitCounters(prime) {
+		strDigit := strconv.Itoa(digit)
+		if count > 1 {
+			family := make([]int, 10)
+			for i := 0; i < 10; i++ {
+				replacementDigit := strconv.Itoa(i)
+				number := strings.Replace(strNumber, strDigit, replacementDigit, -1)
+				family[i], _ = strconv.Atoi(number)
+			}
+			families[digit] = family
+		}
+	}
+	return families
+}
+
+func seekNumber() []int {
+	_primes := generatePrimes(1000000)
+	primes := filteredPrimes(_primes, 3)
+	primeFamily := make([]int, 0)
+	for prime, checked := range primes {
+		if !checked {
+			families := numberFamilies(prime)
+			for _, family := range families {
+				primeFamily = make([]int, 0)
+				for _, value := range family {
+					_, found := primes[value]
+					if found {
+						primeFamily = append(primeFamily, value)
+						primes[value] = true
+					}
+				}
+				if len(primeFamily) == 8 {
+					return primeFamily
+				}
+			}
+		}
+	}
+	return primeFamily
 }
 
 func main() {
 	p("Problem 51")
-	primes := generatePrimes(1000000)
-	p(len(primes))
-	newPrimes := filteredPrimes(primes, 3)
-	p(len(newPrimes))
-
-	// primes := generatePrimes(100)
-	// seekNumber(7, primes)
-	// p(familyOfNumbers(56663, "--**-"))
-	// p(filteredPrimes(primes, 2))
-	// p(uniqueDigits(12345559))
+	p(seekNumber())
 }
