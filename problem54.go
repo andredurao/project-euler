@@ -3,7 +3,9 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 )
@@ -52,12 +54,13 @@ func (card *Card) cmp(card2 *Card) (result int) {
 
 func (hand Hand) String() string {
 	return fmt.Sprintf(
-		"<%s %s %s %s %s>",
+		"Cards: [%s %s %s %s %s] Value: %d",
 		hand.Cards[0].String(),
 		hand.Cards[1].String(),
 		hand.Cards[2].String(),
 		hand.Cards[3].String(),
 		hand.Cards[4].String(),
+		hand.Value,
 	)
 }
 
@@ -203,7 +206,7 @@ func highCardIndex(hands []*Hand) int {
 	for i := 0; i < 5; i++ {
 		if hands[0].Cards[i].Value > hands[1].Cards[i].Value {
 			return 0
-		} else if hands[0].Cards[i].Value > hands[1].Cards[i].Value {
+		} else if hands[1].Cards[i].Value > hands[0].Cards[i].Value {
 			return 1
 		}
 	}
@@ -211,7 +214,50 @@ func highCardIndex(hands []*Hand) int {
 }
 
 func pairIndex(hands []*Hand) int {
-	return -1
+	player1PairRank, player2PairRank := -1, -1
+	for rank, count := range hands[0].Counter {
+		if count == 2 {
+			player1PairRank = rank
+		}
+	}
+	for rank, count := range hands[1].Counter {
+		if count == 2 {
+			player2PairRank = rank
+		}
+	}
+	if player1PairRank > player2PairRank {
+		return 0
+	} else if player2PairRank > player1PairRank {
+		return 1
+	}
+	return highCardIndex(hands)
+}
+
+func twoPairsIndex(hands []*Hand) int {
+	player1PairRanks := []int{}
+	player2PairRanks := []int{}
+	for rank, count := range hands[0].Counter {
+		if count == 2 {
+			player1PairRanks = append(player1PairRanks, rank)
+		}
+	}
+	for rank, count := range hands[1].Counter {
+		if count == 2 {
+			player2PairRanks = append(player2PairRanks, rank)
+		}
+	}
+	sort.Slice(player1PairRanks, func(i, j int) bool {
+		return player1PairRanks[i] > player1PairRanks[j]
+	})
+	sort.Slice(player2PairRanks, func(i, j int) bool {
+		return player2PairRanks[i] > player2PairRanks[j]
+	})
+	for i := 0; i < 2; i++ {
+		if player1PairRanks[i] > player2PairRanks[i] {
+			return i
+		}
+	}
+	return highCardIndex(hands)
 }
 
 func decideWinner(hands []*Hand) int {
@@ -219,10 +265,43 @@ func decideWinner(hands []*Hand) int {
 		return highCardIndex(hands)
 	} else if hands[0].Value == 1 {
 		return pairIndex(hands)
+	} else if hands[0].Value == 2 {
+		return twoPairsIndex(hands) // NOT REACHED IN GAMES FILE
 	}
-	return 0
+	// The only hand draws present in the games file are solved with highcards
+	// or single pairs; the other draw deciders were not necessary
+	return -1
+}
+
+func readFile() [][]*Hand {
+	hands := make([][]*Hand, 0)
+	file, _ := os.Open("p054_poker.txt")
+	fileScanner := bufio.NewScanner(file)
+	for fileScanner.Scan() {
+		line := fileScanner.Text()
+		currentGame := parsePlayersHands(line)
+		hands = append(hands, currentGame)
+	}
+	return hands
 }
 
 func main() {
 	p("Problem 54")
+	result := readFile()
+	total := 0
+	for _, game := range result {
+		player1 := game[0]
+		player2 := game[1]
+		if player1.Value > player2.Value {
+			total++
+		} else if player2.Value == player1.Value {
+			winnerIndex := decideWinner(game)
+			total += (winnerIndex ^ 1)
+			// p("player", (winnerIndex + 1), "wins")
+			if winnerIndex == -1 {
+				panic("DRAW GAME")
+			}
+		}
+	}
+	p(total)
 }
