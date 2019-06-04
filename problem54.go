@@ -64,6 +64,7 @@ func (hand Hand) String() string {
 type Hand struct {
 	Cards   [5]*Card
 	Counter map[int]int
+	Value   int
 }
 
 // given a string with the 5 cards, it will return a sorted array of cards
@@ -81,6 +82,13 @@ func parseHand(cards string) *Hand {
 	// map the card by their values and qty,
 	// ex: JC JD QC QD TD = 10: 2, 11: 2, 9: 1
 
+	hand.setCounter()
+	hand.setValue()
+
+	return &hand
+}
+
+func (hand *Hand) setCounter() {
 	hand.Counter = make(map[int]int)
 	for _, card := range hand.Cards {
 		_, found := hand.Counter[card.Value]
@@ -90,8 +98,6 @@ func parseHand(cards string) *Hand {
 			hand.Counter[card.Value] = 1
 		}
 	}
-
-	return &hand
 }
 
 func parsePlayersHands(line string) []*Hand {
@@ -169,7 +175,8 @@ func (hand *Hand) isRoyalStraightFlush() bool {
 	return startWithAce && hand.isFlush() && hand.isStraight()
 }
 
-func (hand *Hand) value() (result int) {
+func (hand *Hand) setValue() {
+	result := 0
 	if hand.isRoyalStraightFlush() {
 		result = 9
 	} else if hand.isStraight() && hand.isFlush() {
@@ -189,7 +196,31 @@ func (hand *Hand) value() (result int) {
 	} else if hand.isPair() {
 		result = 1
 	}
-	return
+	hand.Value = result
+}
+
+func highCardIndex(hands []*Hand) int {
+	for i := 0; i < 5; i++ {
+		if hands[0].Cards[i].Value > hands[1].Cards[i].Value {
+			return 0
+		} else if hands[0].Cards[i].Value > hands[1].Cards[i].Value {
+			return 1
+		}
+	}
+	return -1 // a draw
+}
+
+func pairIndex(hands []*Hand) int {
+	return -1
+}
+
+func decideWinner(hands []*Hand) int {
+	if hands[0].Value == 0 {
+		return highCardIndex(hands)
+	} else if hands[0].Value == 1 {
+		return pairIndex(hands)
+	}
+	return 0
 }
 
 func main() {
