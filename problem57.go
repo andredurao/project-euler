@@ -5,16 +5,17 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 )
 
 var p = fmt.Println
 
 type Fraction struct {
-	Numerator   int
-	Denominator int
+	Numerator   uint64
+	Denominator uint64
 }
 
-func NewFraction(numerator, denominator int) *Fraction {
+func NewFraction(numerator, denominator uint64) *Fraction {
 	return &Fraction{numerator, denominator}
 }
 
@@ -23,9 +24,8 @@ func (fraction Fraction) String() (result string) {
 	return
 }
 
-func Gcd(a, b int) int {
+func Gcd(a, b uint64) uint64 {
 	for b != 0 {
-		p(a, b)
 		a, b = b, a%b
 	}
 	return a
@@ -37,11 +37,47 @@ func (fraction *Fraction) Simplify() {
 	fraction.Denominator /= gcd
 }
 
+func (a *Fraction) Sum(b *Fraction) *Fraction {
+	d := (a.Denominator * b.Denominator) / Gcd(a.Denominator, b.Denominator)
+	n := ((d / a.Denominator) * a.Numerator) + ((d / b.Denominator) * b.Numerator)
+	return NewFraction(n, d)
+}
+
+func (a *Fraction) Invert() {
+	a.Numerator, a.Denominator = a.Denominator, a.Numerator
+}
+
+func fractionExpansion(n int) *Fraction {
+	n--
+	one := NewFraction(1, 1)
+	two := NewFraction(2, 1)
+	fraction := NewFraction(1, 2)
+	sum := two.Sum(fraction)
+	for i := 1; i < n; i++ {
+		sum.Invert()
+		sum = two.Sum(sum)
+	}
+	sum.Invert()
+	sum = one.Sum(sum)
+	// sum.Simplify()
+	return sum
+}
+
+func digits(n uint64) int {
+	str := strconv.FormatUint(n, 10)
+	return (len(str))
+}
+
 func main() {
 	p("Problem 57")
-	p(Gcd(67, 198))
-	fraction := NewFraction(66, 198)
-	p(fraction)
-	fraction.Simplify()
-	p(fraction)
+
+	total := 0
+
+	for i := 2; i <= 1000; i++ {
+		expansion := fractionExpansion(i)
+		if digits(expansion.Numerator) > digits(expansion.Denominator) {
+			total++
+		}
+	}
+	p(total)
 }
