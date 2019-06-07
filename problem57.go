@@ -5,42 +5,67 @@ package main
 
 import (
 	"fmt"
-	"strconv"
+	"math/big"
 )
 
 var p = fmt.Println
 
 type Fraction struct {
-	Numerator   uint64
-	Denominator uint64
+	Numerator   *big.Int
+	Denominator *big.Int
 }
 
-func NewFraction(numerator, denominator uint64) *Fraction {
-	return &Fraction{numerator, denominator}
+func NewFraction(n, d *big.Int) *Fraction {
+	return &Fraction{n, d}
 }
 
 func (fraction Fraction) String() (result string) {
-	result = fmt.Sprintf("%d / %d", fraction.Numerator, fraction.Denominator)
+	result = fmt.Sprintf(
+		"%s / %s",
+		fraction.Numerator.String(),
+		fraction.Denominator.String(),
+	)
 	return
 }
 
-func Gcd(a, b uint64) uint64 {
-	for b != 0 {
-		a, b = b, a%b
+func Gcd(a, b *big.Int) *big.Int {
+	zero := big.NewInt(0)
+	newA := new(big.Int)
+	newB := new(big.Int)
+	newA.Set(a)
+	newB.Set(b)
+	for newB.Cmp(zero) != 0 {
+		newA, newB = newB, newA.Mod(newA, newB)
 	}
-	return a
+	return newA
 }
 
 func (fraction *Fraction) Simplify() {
+	p("fraction", fraction)
 	gcd := Gcd(fraction.Numerator, fraction.Denominator)
-	fraction.Numerator /= gcd
-	fraction.Denominator /= gcd
+	p("fraction", fraction)
+	p("gcd", gcd)
+	fraction.Numerator = fraction.Numerator.Div(fraction.Numerator, gcd)
+	fraction.Denominator = fraction.Denominator.Div(fraction.Denominator, gcd)
 }
 
 func (a *Fraction) Sum(b *Fraction) *Fraction {
-	d := (a.Denominator * b.Denominator) / Gcd(a.Denominator, b.Denominator)
-	n := ((d / a.Denominator) * a.Numerator) + ((d / b.Denominator) * b.Numerator)
-	return NewFraction(n, d)
+	d := new(big.Int)
+	d.Set(a.Denominator)
+	d.Mul(a.Denominator, b.Denominator)
+	d.Div(d, Gcd(a.Denominator, b.Denominator))
+
+	na := new(big.Int)
+	na.Set(d)
+	na.Div(d, a.Denominator)
+	na.Mul(na, a.Numerator)
+
+	nb := new(big.Int)
+	nb.Set(d)
+	nb.Div(d, b.Denominator)
+	nb.Mul(nb, b.Numerator)
+
+	return NewFraction(na.Add(na, nb), d)
 }
 
 func (a *Fraction) Invert() {
@@ -49,9 +74,9 @@ func (a *Fraction) Invert() {
 
 func fractionExpansion(n int) *Fraction {
 	n--
-	one := NewFraction(1, 1)
-	two := NewFraction(2, 1)
-	fraction := NewFraction(1, 2)
+	one := NewFraction(big.NewInt(1), big.NewInt(1))
+	two := NewFraction(big.NewInt(2), big.NewInt(1))
+	fraction := NewFraction(big.NewInt(1), big.NewInt(2))
 	sum := two.Sum(fraction)
 	for i := 1; i < n; i++ {
 		sum.Invert()
@@ -63,9 +88,8 @@ func fractionExpansion(n int) *Fraction {
 	return sum
 }
 
-func digits(n uint64) int {
-	str := strconv.FormatUint(n, 10)
-	return (len(str))
+func digits(n *big.Int) int {
+	return len(n.String())
 }
 
 func main() {
@@ -79,5 +103,6 @@ func main() {
 			total++
 		}
 	}
+
 	p(total)
 }
