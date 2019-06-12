@@ -40,7 +40,7 @@ func nextPrime(n int) (next int) {
 	return
 }
 
-// AFAIK the qty of k-permutations for n is evaluated: n! / (n-k)!
+// Checking if the qty of k-permutations for n is evaluated: n! / (n-k)!
 // ex: P(n,k) => P(5,2) = 5! / (5-2)! = 20
 func permutations(primes []int) (values []int) {
 	for i := 0; i < len(primes); i++ {
@@ -84,12 +84,24 @@ func isSetComposedOfPrimes(primes []int, primesMap map[int]struct{}) bool {
 // WIP - Start looking for a pair of values that are in the same conditions
 func seekPairSets(primesList []int, primesMap map[int]struct{}) {
 	// start at 3,5 because permutations with 2 won't be valid
-	for i := 1; i < (len(primesList) - 1); i++ {
+	for i := 0; i < (len(primesList) - 1); i++ {
 		for j := i + 1; j < len(primesList); j++ {
 			currentSet := []int{primesList[i], primesList[j]}
 			primes := permutations(currentSet)
 			if isSetComposedOfPrimes(primes, primesMap) {
-				p(primes)
+				for k := j + 1; k < len(primesList); k++ {
+					currentSet := []int{primesList[i], primesList[j], primesList[k]}
+					primes := permutations(currentSet)
+					if isSetComposedOfPrimes(primes, primesMap) {
+						for l := k + 1; l < len(primesList); l++ {
+							currentSet := []int{primesList[i], primesList[j], primesList[k], primesList[l]}
+							primes := permutations(currentSet)
+							if isSetComposedOfPrimes(primes, primesMap) {
+								p(currentSet)
+							}
+						}
+					}
+				}
 			}
 		}
 	}
@@ -97,6 +109,8 @@ func seekPairSets(primesList []int, primesMap map[int]struct{}) {
 
 func main() {
 	p("Problem 60")
-	primesMap, primesList := generatePrimes(100)
+	primesMap, primesList := generatePrimes(1000)
+	p(len(primesList))
+	p(len(primesMap))
 	seekPairSets(primesList, primesMap)
 }
