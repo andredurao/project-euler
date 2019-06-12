@@ -81,23 +81,43 @@ func isSetComposedOfPrimes(primes []int, primesMap map[int]struct{}) bool {
 	return true
 }
 
+func sum(items []int) (result int) {
+	for i := 0; i < len(items); i++ {
+		result += items[i]
+	}
+	return
+}
+
 // WIP - Start looking for a pair of values that are in the same conditions
 func seekPairSets(primesList []int, primesMap map[int]struct{}) {
+	total := 999999
 	// start at 3,5 because permutations with 2 won't be valid
-	for i := 0; i < (len(primesList) - 1); i++ {
+	for i := 0; i < (len(primesList) - 4); i++ {
 		for j := i + 1; j < len(primesList); j++ {
 			currentSet := []int{primesList[i], primesList[j]}
 			primes := permutations(currentSet)
+			// p(currentSet, primes)
 			if isSetComposedOfPrimes(primes, primesMap) {
-				for k := j + 1; k < len(primesList); k++ {
+				// p(currentSet)
+				for k := j + 1; k < (len(primesList) - 3); k++ {
 					currentSet := []int{primesList[i], primesList[j], primesList[k]}
 					primes := permutations(currentSet)
 					if isSetComposedOfPrimes(primes, primesMap) {
-						for l := k + 1; l < len(primesList); l++ {
+						for l := k + 1; l < (len(primesList) - 2); l++ {
 							currentSet := []int{primesList[i], primesList[j], primesList[k], primesList[l]}
 							primes := permutations(currentSet)
 							if isSetComposedOfPrimes(primes, primesMap) {
-								p(currentSet)
+								for m := l + 1; m < len(primesList); m++ {
+									currentSet := []int{primesList[i], primesList[j], primesList[k], primesList[l], primesList[m]}
+									primes := permutations(currentSet)
+									if isSetComposedOfPrimes(primes, primesMap) {
+										currentSum := sum(currentSet)
+										if currentSum < total {
+											p(currentSet, currentSum)
+											total = currentSum
+										}
+									}
+								}
 							}
 						}
 					}
@@ -105,12 +125,11 @@ func seekPairSets(primesList []int, primesMap map[int]struct{}) {
 			}
 		}
 	}
+	p("lowest sum", total)
 }
 
 func main() {
 	p("Problem 60")
-	primesMap, primesList := generatePrimes(1000)
-	p(len(primesList))
-	p(len(primesMap))
+	primesMap, primesList := generatePrimes(10000)
 	seekPairSets(primesList, primesMap)
 }
