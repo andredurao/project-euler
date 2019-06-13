@@ -25,6 +25,17 @@ import (
 
 var p = fmt.Println
 
+type PolygonalNumber struct {
+	value   int // the number itself
+	polygon int // the polygon type (number of edges)
+}
+
+// ValuesSet will be composed by of parts of a number
+type PolygonalValuesSet struct {
+	prefix []*PolygonalNumber
+	sufix  []*PolygonalNumber
+}
+
 func triangle(n int) int {
 	return (n * (n + 1)) / 2
 }
@@ -49,6 +60,15 @@ func octagonal(n int) int {
 	return (n * (3*n - 2))
 }
 
+func generateTriangleNumbers() (values []int) {
+	// the 4 digit values should be in the range: 999 < ((x (x + 1))/2) < 10000
+	// positive values => (-1+sqrt(7993))/2 < x < (-1+sqrt(8889)*3)/2
+	for i := 45; i < 141; i++ {
+		values = append(values, triangle(i))
+	}
+	return
+}
+
 func main() {
 	p("Problem 61")
 	for i := 1; i <= 5; i++ {
@@ -60,4 +80,5 @@ func main() {
 			"\t", octagonal(i),
 		)
 	}
+	p(generateTriangleNumbers())
 }
