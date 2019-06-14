@@ -69,6 +69,15 @@ func generateTriangleNumbers() (values []int) {
 	return
 }
 
+func generateSquareNumbers() (values []int) {
+	// the 4 digit values should be in the range: 999 < x^2 < 10000
+	// positive values => sqrt(999) < x < sqrt(10000)
+	for i := 32; i < 100; i++ {
+		values = append(values, square(i))
+	}
+	return
+}
+
 func main() {
 	p("Problem 61")
 	for i := 1; i <= 5; i++ {
@@ -81,4 +90,5 @@ func main() {
 		)
 	}
 	p(generateTriangleNumbers())
+	p(generateSquareNumbers())
 }
