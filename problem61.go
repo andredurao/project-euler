@@ -78,6 +78,15 @@ func generateSquareNumbers() (values []int) {
 	return
 }
 
+func generatePentagonalNumbers() (values []int) {
+	// the 4 digit values should be in the range: 999 < x(3x−1)/2 < 10000
+	// positive values => (1+sqrt(23977))/6 < x < (1+sqrt(240001))/6
+	for i := 26; i < 82; i++ {
+		values = append(values, pentagonal(i))
+	}
+	return
+}
+
 func main() {
 	p("Problem 61")
 	for i := 1; i <= 5; i++ {
@@ -91,4 +100,5 @@ func main() {
 	}
 	p(generateTriangleNumbers())
 	p(generateSquareNumbers())
+	p(generatePentagonalNumbers())
 }
