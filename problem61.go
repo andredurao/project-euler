@@ -96,6 +96,15 @@ func generateHexagonalNumbers() (values []int) {
 	return
 }
 
+func generateHeptagonalNumbers() (values []int) {
+	// the 4 digit values should be in the range: 999 < x(5x−3)/2 < 10000
+	// positive values => (3+3*sqrt(4441))/10 < x < (3+sqrt(400009))/10
+	for i := 21; i < 64; i++ {
+		values = append(values, heptagonal(i))
+	}
+	return
+}
+
 func main() {
 	p("Problem 61")
 	for i := 1; i <= 5; i++ {
@@ -111,4 +120,5 @@ func main() {
 	p(generateSquareNumbers())
 	p(generatePentagonalNumbers())
 	p(generateHexagonalNumbers())
+	p(generateHeptagonalNumbers())
 }
