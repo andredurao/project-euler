@@ -32,8 +32,8 @@ type PolygonalNumber struct {
 
 // ValuesSet will be composed by of parts of a number
 type PolygonalValuesSet struct {
-	prefix []*PolygonalNumber
-	sufix  []*PolygonalNumber
+	prefixes []*PolygonalNumber
+	suffixes []*PolygonalNumber
 }
 
 func triangle(n int) int {
@@ -114,6 +114,50 @@ func generateOctagonalNumbers() (values []int) {
 	return
 }
 
+func split(value int) (prefix, suffix int) {
+	prefix = value / 100
+	suffix = value % 100
+	return
+}
+
+func populatePolygonalNumbers() map[int]*PolygonalValuesSet {
+	functions := make(map[int]func() []int)
+	functions[3] = generateTriangleNumbers
+	functions[4] = generateSquareNumbers
+	functions[5] = generatePentagonalNumbers
+	functions[6] = generateHexagonalNumbers
+	functions[7] = generateHeptagonalNumbers
+	functions[8] = generateOctagonalNumbers
+
+	result := make(map[int]*PolygonalValuesSet)
+
+	for polygonValue, polygonalFunction := range functions {
+		for _, value := range polygonalFunction() {
+			prefix, suffix := split(value)
+			polygonalNumber := &PolygonalNumber{value, polygonValue}
+			_, found := result[prefix]
+			if !found {
+				valuesSet := &PolygonalValuesSet{}
+				valuesSet.prefixes = append(valuesSet.prefixes, polygonalNumber)
+				result[prefix] = valuesSet
+			} else {
+				valuesSet := result[prefix]
+				valuesSet.prefixes = append(valuesSet.prefixes, polygonalNumber)
+			}
+			_, found = result[suffix]
+			if !found {
+				valuesSet := &PolygonalValuesSet{}
+				valuesSet.suffixes = append(valuesSet.suffixes, polygonalNumber)
+				result[suffix] = valuesSet
+			} else {
+				valuesSet := result[suffix]
+				valuesSet.suffixes = append(valuesSet.suffixes, polygonalNumber)
+			}
+		}
+	}
+	return result
+}
+
 func main() {
 	p("Problem 61")
 	for i := 1; i <= 5; i++ {
@@ -125,10 +169,11 @@ func main() {
 			"\t", octagonal(i),
 		)
 	}
-	p(generateTriangleNumbers())
-	p(generateSquareNumbers())
-	p(generatePentagonalNumbers())
-	p(generateHexagonalNumbers())
-	p(generateHeptagonalNumbers())
-	p(generateOctagonalNumbers())
+	polygonalValues := populatePolygonalNumbers()
+	for k, v := range polygonalValues {
+		p("key =", k)
+		for _, prefix := range v.prefixes {
+			p("val =", prefix.value)
+		}
+	}
 }
