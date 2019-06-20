@@ -21,6 +21,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 )
 
 var p = fmt.Println
@@ -120,7 +121,7 @@ func split(value int) (prefix, suffix int) {
 	return
 }
 
-func populatePolygonalNumbers() map[int]*PolygonalValuesSet {
+func populatePolygonalNumbers() (map[int]*PolygonalValuesSet, []int) {
 	functions := make(map[int]func() []int)
 	functions[3] = generateTriangleNumbers
 	functions[4] = generateSquareNumbers
@@ -130,9 +131,11 @@ func populatePolygonalNumbers() map[int]*PolygonalValuesSet {
 	functions[8] = generateOctagonalNumbers
 
 	result := make(map[int]*PolygonalValuesSet)
+	valuesMap := make(map[int]struct{})
 
 	for polygonValue, polygonalFunction := range functions {
 		for _, value := range polygonalFunction() {
+			valuesMap[value] = struct{}{}
 			prefix, suffix := split(value)
 			polygonalNumber := &PolygonalNumber{value, polygonValue}
 			_, found := result[prefix]
@@ -155,7 +158,16 @@ func populatePolygonalNumbers() map[int]*PolygonalValuesSet {
 			}
 		}
 	}
-	return result
+	values := sortedValues(valuesMap)
+	return result, values
+}
+
+func sortedValues(values map[int]struct{}) (result []int) {
+	for value := range values {
+		result = append(result, value)
+	}
+	sort.Ints(result)
+	return
 }
 
 func main() {
@@ -169,11 +181,17 @@ func main() {
 			"\t", octagonal(i),
 		)
 	}
-	polygonalValues := populatePolygonalNumbers()
+	polygonalValues, values := populatePolygonalNumbers()
 	for k, v := range polygonalValues {
 		p("key =", k)
 		for _, prefix := range v.prefixes {
-			p("val =", prefix.value)
+			p("prefix =", prefix.value)
 		}
+		for _, suffix := range v.suffixes {
+			p("suffix =", suffix.value)
+		}
+	}
+	for _, value := range values {
+		p(value)
 	}
 }
