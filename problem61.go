@@ -121,7 +121,7 @@ func split(value int) (prefix, suffix int) {
 	return
 }
 
-func populatePolygonalNumbers() (map[int]*PolygonalValuesSet, map[int]struct{}) {
+func populatePolygonalNumbers() (map[int]*PolygonalValuesSet, map[int][]int) {
 	functions := make(map[int]func() []int)
 	functions[3] = generateTriangleNumbers
 	functions[4] = generateSquareNumbers
@@ -131,14 +131,18 @@ func populatePolygonalNumbers() (map[int]*PolygonalValuesSet, map[int]struct{}) 
 	functions[8] = generateOctagonalNumbers
 
 	result := make(map[int]*PolygonalValuesSet)
-	values := make(map[int]struct{})
+	values := make(map[int][]int)
 
 	for polygonValue, polygonalFunction := range functions {
 		for _, value := range polygonalFunction() {
-			values[value] = struct{}{}
+			_, found := values[value]
+			if !found {
+				values[value] = make([]int, 0)
+			}
+			values[value] = append(values[value], polygonValue)
 			prefix, suffix := split(value)
 			polygonalNumber := &PolygonalNumber{value, polygonValue}
-			_, found := result[prefix]
+			_, found = result[prefix]
 			if !found {
 				valuesSet := &PolygonalValuesSet{}
 				valuesSet.prefixes = append(valuesSet.prefixes, polygonalNumber)
@@ -190,12 +194,13 @@ func main() {
 	// 		p("suffix =", suffix.value)
 	// 	}
 	// }
-	for value := range values {
+	for value, polygonalClasses := range values {
 		// given the suffix of a value it seeks others with the same prefix
 		_, suffix := split(value)
 		siblings := polygonalValues[suffix]
 		for _, prefix := range siblings.prefixes {
-			p("v = ", value, "prefix =", prefix.value)
+			p("v = ", value, "prefix =", prefix.value, "polygonalClasses", polygonalClasses)
 		}
+		// p("value", value, "polygonalClasses", polygonalClasses, "siblings", siblings)
 	}
 }
