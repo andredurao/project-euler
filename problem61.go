@@ -21,7 +21,6 @@ package main
 
 import (
 	"fmt"
-	"sort"
 )
 
 var p = fmt.Println
@@ -165,12 +164,25 @@ func populatePolygonalNumbers() (map[int]*PolygonalValuesSet, map[int][]int) {
 	return result, values
 }
 
-func sortedValues(values map[int]struct{}) (result []int) {
-	for value := range values {
-		result = append(result, value)
+func seekSiblings(path []*PolygonalNumber, polygonalValues map[int]*PolygonalValuesSet, values map[int][]int) {
+	if len(path) == 4 {
+		p("")
+		for _, polygonalNumber := range path {
+			p(polygonalNumber.value, polygonalNumber.polygon)
+		}
+	} else {
+		item := path[len(path)-1]
+		_, suffix := split(item.value)
+		siblings := polygonalValues[suffix]
+
+		for _, polygonalNumber := range siblings.prefixes {
+			seekSiblings(
+				append(path, polygonalNumber),
+				polygonalValues,
+				values,
+			)
+		}
 	}
-	sort.Ints(result)
-	return
 }
 
 func main() {
@@ -194,13 +206,17 @@ func main() {
 	// 		p("suffix =", suffix.value)
 	// 	}
 	// }
-	for value, polygonalClasses := range values {
-		// given the suffix of a value it seeks others with the same prefix
-		_, suffix := split(value)
-		siblings := polygonalValues[suffix]
-		for _, prefix := range siblings.prefixes {
-			p("v = ", value, "prefix =", prefix.value, "polygonalClasses", polygonalClasses)
+
+	for value, polygons := range values {
+		for polygon := range polygons {
+			//TODO: elimininate circuits
+			polygonalNumber := &PolygonalNumber{value, polygon}
+			path := make([]*PolygonalNumber, 0)
+			seekSiblings(
+				append(path, polygonalNumber),
+				polygonalValues,
+				values,
+			)
 		}
-		// p("value", value, "polygonalClasses", polygonalClasses, "siblings", siblings)
 	}
 }
