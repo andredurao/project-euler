@@ -120,7 +120,7 @@ func split(value int) (prefix, suffix int) {
 	return
 }
 
-func populatePolygonalNumbers() (map[int]*PolygonalValuesSet, map[int][]int) {
+func populatePolygonalNumbers() (map[int]*PolygonalValuesSet, []*PolygonalNumber) {
 	functions := make(map[int]func() []int)
 	functions[3] = generateTriangleNumbers
 	functions[4] = generateSquareNumbers
@@ -130,18 +130,14 @@ func populatePolygonalNumbers() (map[int]*PolygonalValuesSet, map[int][]int) {
 	functions[8] = generateOctagonalNumbers
 
 	result := make(map[int]*PolygonalValuesSet)
-	values := make(map[int][]int)
+	values := make([]*PolygonalNumber, 0)
 
 	for polygonValue, polygonalFunction := range functions {
 		for _, value := range polygonalFunction() {
-			_, found := values[value]
-			if !found {
-				values[value] = make([]int, 0)
-			}
-			values[value] = append(values[value], polygonValue)
-			prefix, suffix := split(value)
 			polygonalNumber := &PolygonalNumber{value, polygonValue}
-			_, found = result[prefix]
+			values = append(values, polygonalNumber)
+			prefix, suffix := split(value)
+			_, found := result[prefix]
 			if !found {
 				valuesSet := &PolygonalValuesSet{}
 				valuesSet.prefixes = append(valuesSet.prefixes, polygonalNumber)
@@ -164,7 +160,7 @@ func populatePolygonalNumbers() (map[int]*PolygonalValuesSet, map[int][]int) {
 	return result, values
 }
 
-func seekSiblings(path []*PolygonalNumber, polygonalValues map[int]*PolygonalValuesSet, values map[int][]int) {
+func seekSiblings(path []*PolygonalNumber, polygonalValues map[int]*PolygonalValuesSet, values []*PolygonalNumber) {
 	if len(path) == 4 {
 		p("")
 		for _, polygonalNumber := range path {
@@ -176,6 +172,7 @@ func seekSiblings(path []*PolygonalNumber, polygonalValues map[int]*PolygonalVal
 		siblings := polygonalValues[suffix]
 
 		for _, polygonalNumber := range siblings.prefixes {
+			// check uniqueness of polygon numbers
 			seekSiblings(
 				append(path, polygonalNumber),
 				polygonalValues,
@@ -207,16 +204,12 @@ func main() {
 	// 	}
 	// }
 
-	for value, polygons := range values {
-		for polygon := range polygons {
-			//TODO: elimininate circuits
-			polygonalNumber := &PolygonalNumber{value, polygon}
-			path := make([]*PolygonalNumber, 0)
-			seekSiblings(
-				append(path, polygonalNumber),
-				polygonalValues,
-				values,
-			)
-		}
+	for _, polygonalNumber := range values {
+		path := make([]*PolygonalNumber, 0)
+		seekSiblings(
+			append(path, polygonalNumber),
+			polygonalValues,
+			values,
+		)
 	}
 }
