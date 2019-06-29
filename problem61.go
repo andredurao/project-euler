@@ -161,7 +161,7 @@ func populatePolygonalNumbers() (map[int]*PolygonalValuesSet, []*PolygonalNumber
 }
 
 func seekSiblings(path []*PolygonalNumber, polygonalValues map[int]*PolygonalValuesSet, values []*PolygonalNumber) {
-	if len(path) == 4 {
+	if len(path) == 5 {
 		p("")
 		for _, polygonalNumber := range path {
 			p(polygonalNumber.value, polygonalNumber.polygon)
@@ -170,14 +170,22 @@ func seekSiblings(path []*PolygonalNumber, polygonalValues map[int]*PolygonalVal
 		item := path[len(path)-1]
 		_, suffix := split(item.value)
 		siblings := polygonalValues[suffix]
+		polygonsSet := make(map[int]struct{})
+		for _, currItem := range path {
+			polygonsSet[currItem.polygon] = struct{}{}
+		}
 
-		for _, polygonalNumber := range siblings.prefixes {
-			// check uniqueness of polygon numbers
-			seekSiblings(
-				append(path, polygonalNumber),
-				polygonalValues,
-				values,
-			)
+		for _, sibling := range siblings.prefixes {
+			if sibling.value > item.value {
+				_, found := polygonsSet[sibling.polygon]
+				if !found {
+					seekSiblings(
+						append(path, sibling),
+						polygonalValues,
+						values,
+					)
+				}
+			}
 		}
 	}
 }
