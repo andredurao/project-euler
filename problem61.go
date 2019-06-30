@@ -161,30 +161,32 @@ func populatePolygonalNumbers() (map[int]*PolygonalValuesSet, []*PolygonalNumber
 }
 
 func seekSiblings(path []*PolygonalNumber, polygonalValues map[int]*PolygonalValuesSet, values []*PolygonalNumber) {
-	if len(path) == 5 {
-		p("")
-		for _, polygonalNumber := range path {
-			p(polygonalNumber.value, polygonalNumber.polygon)
-		}
-	} else {
-		item := path[len(path)-1]
-		_, suffix := split(item.value)
-		siblings := polygonalValues[suffix]
-		polygonsSet := make(map[int]struct{})
-		for _, currItem := range path {
-			polygonsSet[currItem.polygon] = struct{}{}
-		}
+	item := path[len(path)-1]
+	_, suffix := split(item.value)
+	siblings := polygonalValues[suffix]
+	polygonsSet := make(map[int]struct{})
+	for _, currItem := range path {
+		polygonsSet[currItem.polygon] = struct{}{}
+	}
 
-		for _, sibling := range siblings.prefixes {
-			if sibling.value > item.value {
-				_, found := polygonsSet[sibling.polygon]
-				if !found {
-					seekSiblings(
-						append(path, sibling),
-						polygonalValues,
-						values,
-					)
+	for _, sibling := range siblings.prefixes {
+		_, found := polygonsSet[sibling.polygon]
+		if !found {
+			newPath := append(path, sibling)
+			if len(newPath) == 6 {
+				// check first and last items
+				lastItem := newPath[len(newPath)-1]
+				_, lastSuffix := split(lastItem.value)
+				firstItem := newPath[0]
+				firstPrefix, _ := split(firstItem.value)
+				if lastSuffix == firstPrefix {
+					p("--")
+					for _, polygonalNumber := range newPath {
+						p(polygonalNumber.value, polygonalNumber.polygon)
+					}
 				}
+			} else {
+				seekSiblings(append(path, sibling), polygonalValues, values)
 			}
 		}
 	}
@@ -192,6 +194,7 @@ func seekSiblings(path []*PolygonalNumber, polygonalValues map[int]*PolygonalVal
 
 func main() {
 	p("Problem 61")
+	// All the printed sequences where items of the same, because it's cyclical
 	polygonalValues, values := populatePolygonalNumbers()
 
 	for _, polygonalNumber := range values {
