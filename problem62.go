@@ -15,6 +15,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 )
 
@@ -23,66 +24,38 @@ var p = fmt.Println
 // uint 64 max 18446744073709551615 (2^64)
 // floor((2^64) ^ 1/3) = 2642245
 // starting at 1k limit
-func genCubes() map[string]struct{} {
-	cubes := make(map[string]struct{})
-	for i := 1; i <= 1000000; i++ {
-		ui := uint64(i)
-		ui = ui * ui * ui
-		cubes[strconv.FormatUint(ui, 10)] = struct{}{}
-	}
-	return cubes
-}
-
-func generatePermutations(array []rune, n int, permutations *[]string) {
-	if n == 1 {
-		*permutations = append(*permutations, string(array))
-	} else {
-		for i := 0; i < n; i++ {
-			generatePermutations(array, n-1, permutations)
-			if n%2 == 0 {
-				array[0], array[n-1] = array[n-1], array[0]
-			} else {
-				array[i], array[n-1] = array[n-1], array[i]
-			}
-		}
-	}
-}
-
-func countPermutations(cubes map[string]struct{}, permutations []string) (count int) {
-	for _, value := range permutations {
-		_, found := cubes[value]
+func smallestCubeOfGroup() uint64 {
+	cubes := make(map[string][]uint64)
+	i := 0
+	for true {
+		i += 1
+		cube := uint64(i * i * i)
+		key := sortedDigits(cube)
+		_, found := cubes[key]
 		if found {
-			count++
-		}
-	}
-	return
-}
-
-func cleanUpPermutations(cubes map[string]struct{}, permutations []string) {
-	for _, value := range permutations {
-		delete(cubes, value)
-	}
-}
-
-func seekPermutations(cubes map[string]struct{}) {
-	for cube := range cubes {
-		permutations := make([]string, 0)
-		digits := []rune(cube)
-		generatePermutations(digits, len(digits), &permutations)
-		count := countPermutations(cubes, permutations)
-		if count != 5 {
-			cleanUpPermutations(cubes, permutations)
+			cubes[key] = append(cubes[key], cube)
+			if len(cubes[key]) == 5 {
+				return cubes[key][0]
+			}
 		} else {
-			p(permutations)
-			break
+			cubes[key] = make([]uint64, 1)
+			cubes[key][0] = cube
 		}
 	}
+	return uint64(0)
+}
+
+func sortedDigits(cube uint64) string {
+	str := strconv.FormatUint(cube, 10)
+	digits := []rune(str)
+	sort.Slice(digits, func(i, j int) bool {
+		return digits[i] < digits[j]
+	})
+	return string(digits)
 }
 
 func main() {
 	p("Problem 62")
-	cubes := genCubes()
-	p(len(cubes))
-	seekPermutations(cubes)
-	p(len(cubes))
+	result := smallestCubeOfGroup()
+	p(result)
 }
